@@ -3,6 +3,11 @@ const app = express();
 const cors = require("cors");
 const port = 3042;
 
+//Receive Sign
+//Recover public key
+//verify the signature came from this private key
+//if yes, let the transfer go through, otherwise revert
+
 app.use(cors());
 app.use(express.json());
 
