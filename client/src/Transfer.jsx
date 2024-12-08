@@ -1,6 +1,6 @@
 import { useState } from "react";
 import server from "./server";
-import { createKey } from "./privateKeyGenerator";
+import { createKey } from "./privateKeyGenerator.js";
 
 function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");

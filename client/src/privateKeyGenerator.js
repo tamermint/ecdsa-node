@@ -6,13 +6,10 @@ import { toHex } from "ethereum-cryptography/utils.js";
 
 //generate private key based on wallet address
 
-let mapping = {};
-
-function createKey(balances) {
+export function createKey(balances) {
+  let mapping = {};
   for (const address in balances) {
     mapping[address] = toHex(createPrivateKeySync());
   }
   return mapping;
 }
-
-module.exports = createKey;
