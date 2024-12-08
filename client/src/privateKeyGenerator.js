@@ -1,7 +1,4 @@
-import {
-  createPrivateKeySync,
-  ecdsaSign,
-} from "ethereum-cryptography/secp256k1-compat.js";
+import { createPrivateKeySync } from "ethereum-cryptography/secp256k1-compat.js";
 import { toHex } from "ethereum-cryptography/utils.js";
 
 //generate private key based on wallet address
