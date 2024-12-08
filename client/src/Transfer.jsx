@@ -1,9 +1,8 @@
 import { useState } from "react";
 import server from "./server";
 import { createKey } from "./privateKeyGenerator.js";
-import { ecdsaSign, sign } from "ethereum-cryptography/secp256k1-compat.js";
-import { toHex, utf8ToBytes } from "ethereum-cryptography/utils.js";
-import { sha256 } from "ethereum-cryptography/sha256.js";
+import { signTransaction } from "./signTransfer.js";
+import { toHex } from "ethereum-cryptography/utils.js";
 
 function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");
@@ -22,7 +21,6 @@ function Transfer({ address, setBalance }) {
         const { data: fetchedBalances } = await server.get("/balances");
         keys = createKey(fetchedBalances);
         setPrivateKeys(keys);
-        alert(JSON.stringify(keys));
       } catch (ex) {
         alert(ex.response.data.message);
         return;
@@ -34,12 +32,15 @@ function Transfer({ address, setBalance }) {
       alert("Private key not found");
       return;
     }
-    const privateKey = Uint8Array.from(Buffer.from(privateKeyHex, "hex"));
+
+    //alert user to sign transaction
+    //ask for a message, then ask for the wallet id i.e. 0x1, 0x2 etc
+    //retreive the private key
+    //sign the message
 
     //sign transfer using private key
     const msg = `${address}|${recipient}|${parseInt(sendAmount)}`;
-    const messageHash = sha256(utf8ToBytes(msg));
-    const signature = ecdsaSign(messageHash, privateKey);
+    const signature = signTransaction(msg, privateKeyHex);
 
     try {
       const {
@@ -55,6 +56,10 @@ function Transfer({ address, setBalance }) {
       alert(ex.response.data.message);
     }
   }
+  /** Need to replace the transfer from functionality
+   * this is taking time as I was thinking to launch a prompt i.e.a modal onCLick of transfer
+   * but it is not conducive to proper code design
+   */
 
   return (
     <form className="container transfer" onSubmit={transfer}>
