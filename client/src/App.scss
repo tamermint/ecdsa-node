@@ -40,6 +40,14 @@ label {
   }
 }
 
+#sign-button {
+  margin-top: 10px;
+  display: inline-flex;
+  justify-content: center;
+  letter-spacing: 1px;
+  border: none;
+}
+
 input {
   padding: 10px 0;
   border-radius: 0.125rem;

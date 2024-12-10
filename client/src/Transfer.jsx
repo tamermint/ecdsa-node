@@ -8,12 +8,11 @@ function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [privateKeys, setPrivateKeys] = useState({});
+  const [signature, setSignature] = useState(null);
 
   const setValue = (setter) => (evt) => setter(evt.target.value);
 
-  async function transfer(evt) {
-    evt.preventDefault();
-
+  async function sign() {
     //request the balances from the server and create mapping
     let keys = privateKeys;
     if (Object.keys(keys).length === 0) {
@@ -33,16 +32,35 @@ function Transfer({ address, setBalance }) {
       return;
     }
 
-    //alert user to sign transaction
-    //ask for a message, then ask for the wallet id i.e. 0x1, 0x2 etc
-    //retreive the private key
+    //build the message
     //sign the message
 
     //sign transfer using private key
-    const msg = `${address}|${recipient}|${parseInt(sendAmount)}`;
+    const msg =
+      JSON.stringify(sender) +
+      JSON.stringify(recipient) +
+      JSON.stringify(amount);
     const signature = signTransaction(msg, privateKeyHex);
+    return signature;
+  }
+
+  async function handleSignClick() {
+    const sig = await sign();
+    if (sig) {
+      setSignature(sig);
+      alert("Transaction signed!");
+    } else {
+      alert("Unable to sign transaction");
+    }
+  }
+
+  async function transfer(evt) {
+    evt.preventDefault();
 
     try {
+      if (!signature) {
+        alert("Please sign the transaction first!");
+      }
       const {
         data: { balance },
       } = await server.post(`send`, {
@@ -82,7 +100,14 @@ function Transfer({ address, setBalance }) {
           onChange={setValue(setRecipient)}
         ></input>
       </label>
-
+      <button
+        type="button"
+        className="button"
+        id="sign-button"
+        onClick={handleSignClick}
+      >
+        Sign
+      </button>
       <input type="submit" className="button" value="Transfer" />
     </form>
   );
