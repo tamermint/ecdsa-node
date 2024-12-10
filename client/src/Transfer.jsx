@@ -2,7 +2,7 @@ import { useState } from "react";
 import server from "./server";
 import { createKey } from "./privateKeyGenerator.js";
 import { signTransaction } from "./signTransfer.js";
-import { toHex } from "ethereum-cryptography/utils.js";
+import { toHex, sha256 } from "ethereum-cryptography/utils.js";
 
 function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");

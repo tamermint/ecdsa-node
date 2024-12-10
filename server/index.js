@@ -2,6 +2,13 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = 3042;
+const { sha256 } = require("ethereum-cryptography/sha256");
+const { utf8ToBytes, hexToBytes } = require("ethereum-cryptography/utils");
+const { keccak256 } = require("ethereum-cryptography/keccak");
+const {
+  ecdsaRecover,
+  publicKeyCreate,
+} = require("ethereum-cryptography/secp256k1-compat");
 
 //Receive Sign
 //Recover public key
@@ -28,7 +35,25 @@ app.get("/balance/:address", (req, res) => {
 });
 
 app.post("/send", (req, res) => {
-  const { sender, recipient, amount } = req.body;
+  const { sender, recipient, amount, signature } = req.body;
+
+  //reconstruct message hash as we cannot trust the sender
+  const message =
+    JSON.stringify(sender) + JSON.stringify(recipient) + JSON.stringify(amount);
+  const messageHash = sha256(utf8ToBytes(message));
+
+  //recover the public key from signature
+  const sigBytes = hexToBytes(signature);
+  const r = sigBytes.slice(0, 32);
+  const s = sigBytes.slice(32, 64);
+  const v = sigBytes[64];
+
+  const recoveredPubKey = ecdsaRecover(
+    Buffer.concat([r, s]),
+    v,
+    messageHash,
+    false
+  );
 
   setInitialBalance(sender);
   setInitialBalance(recipient);
