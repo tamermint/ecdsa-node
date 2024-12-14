@@ -81,7 +81,7 @@ function Transfer({ address, setBalance }) {
         amount: parseInt(sendAmount),
         recipient,
         signature: toHex(signature),
-        pubKey: pubKeyHex,
+        pubkey: pubKeyHex,
       });
       setBalance(balance);
     } catch (ex) {
