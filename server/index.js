@@ -54,7 +54,6 @@ app.post("/send", (req, res) => {
     false
   );
   const recoveredPubKeyHex = toHex(recoveredPubKey);
-  console.log("Recovered Public Key:", recoveredPubKeyHex);
 
   if (recoveredPubKeyHex !== pubkey) {
     return res
