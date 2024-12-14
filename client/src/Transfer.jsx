@@ -21,17 +21,20 @@ function Transfer({ address, setBalance }) {
     if (Object.keys(keys).length === 0) {
       try {
         const { data: fetchedBalances } = await server.get("/balances");
+        console.log(JSON.stringify(fetchedBalances));
         keys = createKey(fetchedBalances);
         setPrivateKeys(keys);
         pubKeys = generatePublicKey(keys);
         setPublicKeys(pubKeys);
       } catch (ex) {
-        alert(ex.response.data.message);
-        return null;
+        console.error("Error during transfer:", ex);
+        alert(ex.response?.data?.message || ex.message || "An error occurred");
+        return;
       }
     }
     //retreive private key from mapping
     const privateKeyHex = keys[address];
+
     if (!privateKeyHex) {
       alert("Private key not found");
       return null;
@@ -46,14 +49,18 @@ function Transfer({ address, setBalance }) {
 
     //build the message
     //sign the message
+    const amountNumber = parseInt(sendAmount);
 
     //sign transfer using private key
     const msg =
       JSON.stringify(address) +
       JSON.stringify(recipient) +
-      JSON.stringify(sendAmount);
-    const signature = signTransaction(msg, privateKeyHex);
-    return signature;
+      JSON.stringify(amountNumber);
+    const { signature: sigBytes, recid } = signTransaction(msg, privateKeyHex);
+    const fullSignature = new Uint8Array(sigBytes.length + 1);
+    fullSignature.set(sigBytes);
+    fullSignature.set([recid], sigBytes.length);
+    return fullSignature;
   }
 
   async function handleSignClick() {
@@ -85,7 +92,13 @@ function Transfer({ address, setBalance }) {
       });
       setBalance(balance);
     } catch (ex) {
-      alert(ex.response.data.message);
+      console.error("Error during transfer:", ex);
+      alert(
+        ex.response?.data?.message ||
+          ex.response?.data?.error ||
+          ex.message ||
+          "An error occurred"
+      );
     }
   }
   /** Need to replace the transfer from functionality
