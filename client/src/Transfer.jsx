@@ -1,13 +1,15 @@
 import { useState } from "react";
 import server from "./server";
 import { createKey } from "./privateKeyGenerator.js";
+import { generatePublicKey } from "./publicKeyGenerator.js";
 import { signTransaction } from "./signTransfer.js";
-import { toHex, sha256 } from "ethereum-cryptography/utils.js";
+import { toHex } from "ethereum-cryptography/utils.js";
 
 function Transfer({ address, setBalance }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [privateKeys, setPrivateKeys] = useState({});
+  const [publicKeys, setPublicKeys] = useState({});
   const [signature, setSignature] = useState(null);
 
   const setValue = (setter) => (evt) => setter(evt.target.value);
@@ -15,21 +17,31 @@ function Transfer({ address, setBalance }) {
   async function sign() {
     //request the balances from the server and create mapping
     let keys = privateKeys;
+    let pubKeys = publicKeys;
     if (Object.keys(keys).length === 0) {
       try {
         const { data: fetchedBalances } = await server.get("/balances");
         keys = createKey(fetchedBalances);
         setPrivateKeys(keys);
+        pubKeys = generatePublicKey(keys);
+        setPublicKeys(pubKeys);
       } catch (ex) {
         alert(ex.response.data.message);
-        return;
+        return null;
       }
     }
     //retreive private key from mapping
     const privateKeyHex = keys[address];
     if (!privateKeyHex) {
       alert("Private key not found");
-      return;
+      return null;
+    }
+
+    //retreive the public key from the mapping
+    const pubKeyHex = pubKeys[address];
+    if (!pubKeyHex) {
+      alert("Public key not found");
+      return null;
     }
 
     //build the message
@@ -37,9 +49,9 @@ function Transfer({ address, setBalance }) {
 
     //sign transfer using private key
     const msg =
-      JSON.stringify(sender) +
+      JSON.stringify(address) +
       JSON.stringify(recipient) +
-      JSON.stringify(amount);
+      JSON.stringify(sendAmount);
     const signature = signTransaction(msg, privateKeyHex);
     return signature;
   }
@@ -61,6 +73,7 @@ function Transfer({ address, setBalance }) {
       if (!signature) {
         alert("Please sign the transaction first!");
       }
+      const pubKeyHex = publicKeys[address];
       const {
         data: { balance },
       } = await server.post(`send`, {
@@ -68,6 +81,7 @@ function Transfer({ address, setBalance }) {
         amount: parseInt(sendAmount),
         recipient,
         signature: toHex(signature),
+        pubKey: pubKeyHex,
       });
       setBalance(balance);
     } catch (ex) {
